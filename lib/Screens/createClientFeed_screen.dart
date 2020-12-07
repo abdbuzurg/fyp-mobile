@@ -101,7 +101,8 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
                                   fontSize: 18.0,
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold))),
-                    )
+                    ),
+                    SizedBox(height: 5.0),
                   ],
                 ))));
   }

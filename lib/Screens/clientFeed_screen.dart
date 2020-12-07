@@ -6,6 +6,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './components/loadingSpinner.dart';
 import '../models/ClientFeedShape.dart';
+import 'aSignleClientFeed.dart';
 import 'createClientFeed_screen.dart';
 
 class ClientFeed extends StatefulWidget {
@@ -80,7 +81,8 @@ class _ClientFeed extends State<ClientFeed> {
 
   Widget oneFeed(ClientFeedShape feed) {
     return GestureDetector(
-        onTap: () => print(feed.id),
+        onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => ASingleClientFeed(feed))),
         child: Container(
             margin: EdgeInsets.all(10.0),
             padding: EdgeInsets.all(10.0),
@@ -130,49 +132,25 @@ class _ClientFeed extends State<ClientFeed> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Row(children: [
-                                Icon(Icons.directions_car, size: 24.0),
-                                Text(feed.carModel),
-                              ]),
-                              Row(children: [
-                                Icon(Icons.call, size: 24.0),
-                                Text(feed.mobileNumber)
-                              ])
-                            ]),
+                        Container(
+                            width: double.infinity,
+                            child: Text(feed.description)),
                         SizedBox(height: 10.0),
                         Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Row(children: [
                                 Icon(Icons.my_location, size: 24.0),
+                                SizedBox(width: 5.0),
                                 Text(feed.initialLocation),
                               ]),
+                              SizedBox(width: 15.0),
                               Row(children: [
                                 Icon(Icons.location_on, size: 24.0),
+                                SizedBox(width: 5.0),
                                 Text(feed.finalLocation)
                               ])
                             ]),
-                        SizedBox(height: 10.0),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Row(children: [
-                                Icon(Icons.attach_money, size: 24.0),
-                                Text(feed.pricing),
-                              ]),
-                              Row(children: [
-                                Icon(Icons.airline_seat_legroom_normal,
-                                    size: 24.0),
-                                Text(feed.numberOfSeats.toString())
-                              ]),
-                              Row(children: [
-                                Icon(Icons.access_time, size: 24.0),
-                                Text(feed.departureDate)
-                              ])
-                            ])
                       ],
                     ))
               ],
