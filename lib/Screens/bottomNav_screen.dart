@@ -20,7 +20,7 @@ class _BottomNav extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: _bottomNavView.elementAt(_selectedIndex)),
+      body: IndexedStack(index: _selectedIndex, children: _bottomNavView),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         backgroundColor: Colors.white,

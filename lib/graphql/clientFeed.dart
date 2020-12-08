@@ -48,4 +48,12 @@ class ClientFeedQraphql {
     }
     """;
   }
+
+  static String deleteClientFeed(int id) {
+    return """
+    mutation{
+      deleteClientFeed(id:$id)
+    }
+    """;
+  }
 }

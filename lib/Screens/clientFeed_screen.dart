@@ -38,12 +38,34 @@ class _ClientFeed extends State<ClientFeed> {
     }
   }
 
+  Future<void> _deleteClientFeed(int id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String token = await prefs.get("token");
+    GraphQLClient client = GraphQLConfiguration().clientToQuery(token: token);
+    String deleteCLinetFeed = ClientFeedQraphql.deleteClientFeed(id);
+    QueryResult result = await client.mutate(MutationOptions(
+      documentNode: gql(deleteCLinetFeed),
+    ));
+    if (!result.hasException) {
+      _refresh.value += 1;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: appPrimaryColor,
           title: Center(child: Text("Client Feed")),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Show Snackbar',
+              onPressed: () {
+                _refresh.value += 1;
+              },
+            ),
+          ],
         ),
         floatingActionButton: FloatingActionButton(
             onPressed: () => Navigator.of(context)
@@ -80,80 +102,101 @@ class _ClientFeed extends State<ClientFeed> {
   }
 
   Widget oneFeed(ClientFeedShape feed) {
-    return GestureDetector(
-        onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ASingleClientFeed(feed))),
-        child: Container(
-            margin: EdgeInsets.all(10.0),
-            padding: EdgeInsets.all(10.0),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(width: 1.5, color: appPrimaryColor),
-              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 3,
-                  blurRadius: 7,
-                  offset: Offset(0, 3), // changes position of shadow
-                )
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20.0,
-                          backgroundColor: appPrimaryColor,
-                        ),
-                        SizedBox(
-                          width: 12.0,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(feed.driverName,
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(feed.username,
-                                style: TextStyle(fontSize: 11.0)),
-                          ],
-                        )
-                      ],
-                    )),
-                Padding(
-                    padding:
-                        EdgeInsets.only(left: 12.0, bottom: 8.0, right: 12.0),
-                    child: Column(
+    return Container(
+        margin: EdgeInsets.all(10.0),
+        padding: EdgeInsets.all(10.0),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(width: 1.5, color: appPrimaryColor),
+          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 3,
+              blurRadius: 7,
+              offset: Offset(0, 3), // changes position of shadow
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20.0,
+                      backgroundColor: appPrimaryColor,
+                    ),
+                    SizedBox(
+                      width: 12.0,
+                    ),
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                            width: double.infinity,
-                            child: Text(feed.description)),
-                        SizedBox(height: 10.0),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Row(children: [
-                                Icon(Icons.my_location, size: 24.0),
-                                SizedBox(width: 5.0),
-                                Text(feed.initialLocation),
-                              ]),
-                              SizedBox(width: 15.0),
-                              Row(children: [
-                                Icon(Icons.location_on, size: 24.0),
-                                SizedBox(width: 5.0),
-                                Text(feed.finalLocation)
-                              ])
-                            ]),
+                        Text(feed.driverName,
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(feed.username, style: TextStyle(fontSize: 11.0)),
                       ],
-                    ))
-              ],
-            )));
+                    ),
+                    Expanded(child: Container()),
+                    PopupMenuButton(
+                      onSelected: (dynamic value) {
+                        switch (value) {
+                          case "remove":
+                            print(feed.id);
+                            _deleteClientFeed(feed.id);
+                            break;
+                          case "report":
+                            print(feed.driverName);
+                            break;
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                        PopupMenuItem(
+                          child: Text("Remove"),
+                          value: "remove",
+                        ),
+                        PopupMenuItem(child: Text("Report"), value: "report"),
+                      ],
+                    ),
+                  ],
+                )),
+            GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => ASingleClientFeed(feed))),
+                child: Container(
+                    width: double.infinity,
+                    child: Padding(
+                        padding: EdgeInsets.only(
+                            left: 12.0, bottom: 8.0, right: 12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                                width: double.infinity,
+                                child: Text(feed.description)),
+                            SizedBox(height: 10.0),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Row(children: [
+                                    Icon(Icons.my_location, size: 24.0),
+                                    SizedBox(width: 5.0),
+                                    Text(feed.initialLocation),
+                                  ]),
+                                  SizedBox(width: 15.0),
+                                  Row(children: [
+                                    Icon(Icons.location_on, size: 24.0),
+                                    SizedBox(width: 5.0),
+                                    Text(feed.finalLocation)
+                                  ])
+                                ]),
+                          ],
+                        )))),
+          ],
+        ));
   }
 }
