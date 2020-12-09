@@ -21,6 +21,7 @@ class Auth {
     mutation{
       login(username:"$user", password:"$password"){
         token
+        userId
       }
     }
     """;
@@ -31,6 +32,19 @@ class Auth {
       mutation{
         logout
       }
+    """;
+  }
+
+  static String getUserById(int id) {
+    return """
+      {
+      user(id: $id){
+        email
+        username
+        name
+        mobileNumber
+      }
+    }
     """;
   }
 }

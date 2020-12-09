@@ -5,6 +5,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 
 import '../constants.dart';
 import '../graphQLConfig.dart';
+import 'components/customSnackBar.dart';
 import 'signin_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _SignUpScreen extends State<SignUpScreen> {
   String _password;
   String _name;
   String _mobileNumber;
+  final globalKey = GlobalKey<ScaffoldState>();
 
   Widget _buildButton(String text, Function onPressed) {
     return Container(
@@ -42,6 +44,7 @@ class _SignUpScreen extends State<SignUpScreen> {
   @override
   Widget build(BuildContext build) {
     return Scaffold(
+      key: globalKey,
       backgroundColor: Colors.white,
       body: Container(
           height: double.infinity,
@@ -98,6 +101,9 @@ class _SignUpScreen extends State<SignUpScreen> {
                   keyboardType: true,
                 ),
                 _buildButton("SIGN UP", () async {
+                  final loading =
+                      CustomSnackBar("Loading", duration: 60, progress: true);
+                  globalKey.currentState.showSnackBar(loading.build(context));
                   String registerMutation = Auth.register(
                       _name, _username, _email, _password, _mobileNumber);
                   GraphQLClient client = graphQLConfiguration.clientToQuery();
@@ -105,8 +111,35 @@ class _SignUpScreen extends State<SignUpScreen> {
                     documentNode: gql(registerMutation),
                   ));
                   if (!result.hasException) {
+                    globalKey.currentState.removeCurrentSnackBar();
+                    final successfullSnackBar = CustomSnackBar(
+                      "You are successfuly registered",
+                      duration: 10,
+                      icon: Icons.done,
+                    );
+                    globalKey.currentState.showSnackBar(
+                        successfullSnackBar.build(context) as SnackBar);
+                    await Future.delayed(const Duration(milliseconds: 1500));
                     Navigator.of(context).pop(MaterialPageRoute(
                         builder: (context) => SignInScreen()));
+                  } else {
+                    globalKey.currentState.removeCurrentSnackBar();
+                    if (result.exception.clientException != null) {
+                      final connectionSnackBar = CustomSnackBar(
+                        "Connection error. Check your internet.",
+                        duration: 10,
+                        icon: Icons.wifi_off,
+                      );
+                      globalKey.currentState.showSnackBar(
+                          connectionSnackBar.build(context) as SnackBar);
+                    } else {
+                      final graphqlSnackBar = CustomSnackBar(
+                          "Invalid credentials. Try again.",
+                          duration: 10,
+                          icon: Icons.warning);
+                      globalKey.currentState.showSnackBar(
+                          graphqlSnackBar.build(context) as SnackBar);
+                    }
                   }
                 })
               ],

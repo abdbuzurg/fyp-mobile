@@ -101,6 +101,12 @@ class _ClientFeed extends State<ClientFeed> {
                 )));
   }
 
+  Future<bool> _removeEnabled(int driverId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final int userId = await prefs.get("userId");
+    return userId == driverId;
+  }
+
   Widget oneFeed(ClientFeedShape feed) {
     return Container(
         margin: EdgeInsets.all(10.0),
@@ -139,27 +145,6 @@ class _ClientFeed extends State<ClientFeed> {
                         Text(feed.driverName,
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         Text(feed.username, style: TextStyle(fontSize: 11.0)),
-                      ],
-                    ),
-                    Expanded(child: Container()),
-                    PopupMenuButton(
-                      onSelected: (dynamic value) {
-                        switch (value) {
-                          case "remove":
-                            print(feed.id);
-                            _deleteClientFeed(feed.id);
-                            break;
-                          case "report":
-                            print(feed.driverName);
-                            break;
-                        }
-                      },
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                        PopupMenuItem(
-                          child: Text("Remove"),
-                          value: "remove",
-                        ),
-                        PopupMenuItem(child: Text("Report"), value: "report"),
                       ],
                     ),
                   ],

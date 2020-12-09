@@ -1,3 +1,5 @@
+import 'package:fypMobile/models/RequestShape.dart';
+
 class ClientFeedShape {
   final int id;
   final String username;

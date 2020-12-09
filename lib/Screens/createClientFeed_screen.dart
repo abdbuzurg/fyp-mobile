@@ -6,6 +6,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
+import 'components/customSnackBar.dart';
 
 class CreateClientFeed extends StatefulWidget {
   @override
@@ -20,8 +21,11 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
   String numberOfSeats;
   String departureDate;
   String description;
+  final globalKey = GlobalKey<ScaffoldState>();
 
   Future<void> createClientFeed() async {
+    final loading = CustomSnackBar("Loading", duration: 60, progress: true);
+    globalKey.currentState.showSnackBar(loading.build(context));
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final String token = await prefs.get("token");
     GraphQLClient client = GraphQLConfiguration().clientToQuery(token: token);
@@ -35,16 +39,41 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
         description: description);
     QueryResult result =
         await client.mutate(MutationOptions(documentNode: gql(query)));
+
     if (!result.hasException) {
+      globalKey.currentState.removeCurrentSnackBar();
+      final successfullSnackBar = CustomSnackBar(
+        "Successfuly created new post",
+        duration: 10,
+        icon: Icons.done,
+      );
+      globalKey.currentState
+          .showSnackBar(successfullSnackBar.build(context) as SnackBar);
       Navigator.pop(context, true);
+      await Future.delayed(const Duration(milliseconds: 1500));
     } else {
-      print(result.exception);
+      globalKey.currentState.removeCurrentSnackBar();
+      if (result.exception.clientException != null) {
+        final connectionSnackBar = CustomSnackBar(
+          "Connection error. Check your internet.",
+          duration: 10,
+          icon: Icons.wifi_off,
+        );
+        globalKey.currentState
+            .showSnackBar(connectionSnackBar.build(context) as SnackBar);
+      } else {
+        final graphqlSnackBar = CustomSnackBar("Please fill all the fields",
+            duration: 10, icon: Icons.warning);
+        globalKey.currentState
+            .showSnackBar(graphqlSnackBar.build(context) as SnackBar);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: globalKey,
         appBar: AppBar(
           backgroundColor: appPrimaryColor,
           title: Text("New post for clients"),

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:fypMobile/Screens/components/customSnackBar.dart';
 import 'package:fypMobile/Screens/components/signingTF.dart';
 import 'package:fypMobile/Screens/signup_screen.dart';
 import 'package:fypMobile/constants.dart';
@@ -18,9 +21,7 @@ class _SignInScreen extends State<SignInScreen> {
   bool _rememberMe = false;
   String _user;
   String _password;
-
-  final String dummyUser = "vortex";
-  final String dummyPassword = "qwerty";
+  final globalKey = GlobalKey<ScaffoldState>();
 
   Widget _buildForgotPasswordFlag() {
     return Container(
@@ -81,6 +82,7 @@ class _SignInScreen extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: globalKey,
         backgroundColor: Colors.white,
         body: Container(
             height: double.infinity,
@@ -118,6 +120,10 @@ class _SignInScreen extends State<SignInScreen> {
                     _buildForgotPasswordFlag(),
                     _buildRememberMeCheckbox(),
                     _buildButton("LOGIN", () async {
+                      final loading = CustomSnackBar("Loading",
+                          duration: 60, progress: true);
+                      globalKey.currentState
+                          .showSnackBar(loading.build(context));
                       String loginMutation = Auth.login(_user, _password);
                       GraphQLClient client =
                           GraphQLConfiguration().clientToQuery();
@@ -125,16 +131,44 @@ class _SignInScreen extends State<SignInScreen> {
                         documentNode: gql(loginMutation),
                       ));
                       if (!result.hasException) {
+                        globalKey.currentState.removeCurrentSnackBar();
+                        final successfullSnackBar = CustomSnackBar(
+                          "Successfuly logged in",
+                          duration: 10,
+                          icon: Icons.done,
+                        );
+                        globalKey.currentState.showSnackBar(
+                            successfullSnackBar.build(context) as SnackBar);
                         SharedPreferences prefs =
                             await SharedPreferences.getInstance();
                         await prefs.setString(
                             "token", result.data["login"]["token"]);
+                        await prefs.setInt(
+                            "userId", result.data["login"]["userId"]);
+                        await Future.delayed(
+                            const Duration(milliseconds: 1500));
                         Navigator.of(context).pushReplacement(
                             new MaterialPageRoute(
                                 builder: (BuildContext context) =>
                                     BottomNav()));
                       } else {
-                        print(result.exception);
+                        globalKey.currentState.removeCurrentSnackBar();
+                        if (result.exception.clientException != null) {
+                          final connectionSnackBar = CustomSnackBar(
+                            "Connection error. Check your internet.",
+                            duration: 10,
+                            icon: Icons.wifi_off,
+                          );
+                          globalKey.currentState.showSnackBar(
+                              connectionSnackBar.build(context) as SnackBar);
+                        } else {
+                          final graphqlSnackBar = CustomSnackBar(
+                              "Invalid credentials. Try again.",
+                              duration: 10,
+                              icon: Icons.warning);
+                          globalKey.currentState.showSnackBar(
+                              graphqlSnackBar.build(context) as SnackBar);
+                        }
                       }
                     }),
                     SizedBox(height: 5),
