@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fypMobile/constants.dart';
-import 'package:fypMobile/graphql/request.dart';
 import 'package:fypMobile/models/ClientFeedShape.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../graphQLConfig.dart';
 import 'components/loadingSpinner.dart';
 
 class ASingleClientFeed extends StatefulWidget {

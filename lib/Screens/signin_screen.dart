@@ -5,12 +5,11 @@ import 'package:fypMobile/Screens/components/customSnackBar.dart';
 import 'package:fypMobile/Screens/components/signingTF.dart';
 import 'package:fypMobile/Screens/signup_screen.dart';
 import 'package:fypMobile/constants.dart';
-import 'package:fypMobile/graphql/auth.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../graphQLConfig.dart';
 import 'bottomNav_screen.dart';
+
+import 'package:http/http.dart' as http;
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -120,56 +119,11 @@ class _SignInScreen extends State<SignInScreen> {
                     _buildForgotPasswordFlag(),
                     _buildRememberMeCheckbox(),
                     _buildButton("LOGIN", () async {
-                      final loading = CustomSnackBar("Loading",
-                          duration: 60, progress: true);
-                      globalKey.currentState
-                          .showSnackBar(loading.build(context));
-                      String loginMutation = Auth.login(_user, _password);
-                      GraphQLClient client =
-                          GraphQLConfiguration().clientToQuery();
-                      QueryResult result = await client.mutate(MutationOptions(
-                        documentNode: gql(loginMutation),
-                      ));
-                      if (!result.hasException) {
-                        globalKey.currentState.removeCurrentSnackBar();
-                        final successfullSnackBar = CustomSnackBar(
-                          "Successfuly logged in",
-                          duration: 10,
-                          icon: Icons.done,
-                        );
-                        globalKey.currentState.showSnackBar(
-                            successfullSnackBar.build(context) as SnackBar);
-                        SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        await prefs.setString(
-                            "token", result.data["login"]["token"]);
-                        await prefs.setInt(
-                            "userId", result.data["login"]["userId"]);
-                        await Future.delayed(
-                            const Duration(milliseconds: 1500));
-                        Navigator.of(context).pushReplacement(
-                            new MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    BottomNav()));
-                      } else {
-                        globalKey.currentState.removeCurrentSnackBar();
-                        if (result.exception.clientException != null) {
-                          final connectionSnackBar = CustomSnackBar(
-                            "Connection error. Check your internet.",
-                            duration: 10,
-                            icon: Icons.wifi_off,
-                          );
-                          globalKey.currentState.showSnackBar(
-                              connectionSnackBar.build(context) as SnackBar);
-                        } else {
-                          final graphqlSnackBar = CustomSnackBar(
-                              "Invalid credentials. Try again.",
-                              duration: 10,
-                              icon: Icons.warning);
-                          globalKey.currentState.showSnackBar(
-                              graphqlSnackBar.build(context) as SnackBar);
-                        }
-                      }
+                      print("Logging in");
+                      var url = Uri.parse(backendApiUrl + 'user/login');
+                      final response = await http.post(url,
+                          body: {'username': _user, 'password': _password});
+                      print(response.statusCode);
                     }),
                     SizedBox(height: 5),
                     _buildButton("REGISTER", () => _navigateToSignUp(context))

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fypMobile/constants.dart';
-import 'package:fypMobile/graphQLConfig.dart';
-import 'package:fypMobile/graphql/clientFeed.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './components/loadingSpinner.dart';
 import '../models/ClientFeedShape.dart';
@@ -21,34 +18,11 @@ class _ClientFeed extends State<ClientFeed> {
   }
 
   Future<List<ClientFeedShape>> _fetchClientFeed() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String token = await prefs.get("token");
-    GraphQLClient client = GraphQLConfiguration().clientToQuery(token: token);
-    String fetchAll = ClientFeedQraphql.fetchAll();
-    QueryResult result =
-        await client.query(QueryOptions(documentNode: gql(fetchAll)));
-    if (!result.hasException) {
-      List<dynamic> clientFeed = result.data["fetchClientFeed"];
-      return clientFeed
-          .map((clientFeed) => ClientFeedShape.fromAllFeedJson(clientFeed))
-          .toList();
-    } else {
-      print(result.exception);
-      return null;
-    }
+    return null;
   }
 
   Future<void> _deleteClientFeed(int id) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String token = await prefs.get("token");
-    GraphQLClient client = GraphQLConfiguration().clientToQuery(token: token);
-    String deleteCLinetFeed = ClientFeedQraphql.deleteClientFeed(id);
-    QueryResult result = await client.mutate(MutationOptions(
-      documentNode: gql(deleteCLinetFeed),
-    ));
-    if (!result.hasException) {
-      _refresh.value += 1;
-    }
+    return null;
   }
 
   @override

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fypMobile/Screens/signin_screen.dart';
-import 'package:fypMobile/graphQLConfig.dart';
-import 'package:fypMobile/graphql/auth.dart';
 import 'package:fypMobile/models/UserShape.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
@@ -21,18 +18,6 @@ class _ProfileScreen extends State<ProfileScreen> {
   }
 
   Future<UserShape> getUserInfo() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String token = await prefs.get("token");
-    final int userId = await prefs.get("userId");
-    GraphQLClient client = GraphQLConfiguration().clientToQuery(token: token);
-    String getUser = Auth.getUserById(userId);
-    QueryResult result =
-        await client.query(QueryOptions(documentNode: gql(getUser)));
-    if (!result.hasException) {
-      final UserShape user = UserShape.from(result.data["user"]);
-      return user;
-    }
-
     return null;
   }
 

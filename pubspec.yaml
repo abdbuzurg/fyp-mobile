@@ -24,7 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   
-  graphql_flutter: ^3.0.0
+  http: 0.12.2
   shared_preferences: ^0.5.12+4
 
 
