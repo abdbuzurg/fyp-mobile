@@ -10,7 +10,7 @@ class UserShape {
     return UserShape(
         email: result["email"],
         username: result["username"],
-        name: result["name"],
+        name: result["firstName"] + " " + result["lastName"],
         mobileNumber: result["mobileNumber"]);
   }
 }

@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fypMobile/Screens/signin_screen.dart';
 import 'package:fypMobile/models/UserShape.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
+
+import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
   _ProfileScreen createState() => _ProfileScreen();
@@ -18,7 +22,21 @@ class _ProfileScreen extends State<ProfileScreen> {
   }
 
   Future<UserShape> getUserInfo() async {
-    return null;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
+
+    var url = Uri.parse(backendApiUrl + 'user/myself');
+    final response = await http.get(url, headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $token'
+    });
+    if (response.statusCode == 200) {
+      Map responseData = json.decode(response.body);
+      if (responseData["success"]) {
+        print(responseData["data"]);
+        return UserShape.from(responseData["data"]);
+      }
+    }
   }
 
   Widget content(UserShape user) {

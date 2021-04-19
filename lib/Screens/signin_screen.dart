@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -121,9 +122,27 @@ class _SignInScreen extends State<SignInScreen> {
                     _buildButton("LOGIN", () async {
                       print("Logging in");
                       var url = Uri.parse(backendApiUrl + 'user/login');
+                      Map data = {'username': _user, 'password': _password};
+                      String body = json.encode(data);
                       final response = await http.post(url,
-                          body: {'username': _user, 'password': _password});
-                      print(response.statusCode);
+                          headers: {"Content-Type": "application/json"},
+                          body: body);
+                      if (response.statusCode == 200) {
+                        Map responseData = json.decode(response.body);
+                        if (responseData["success"]) {
+                          print("You are logged in");
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          print(responseData["token"]);
+                          await prefs.setString("token", responseData["token"]);
+                          Navigator.of(context).pushReplacement(
+                              new MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      BottomNav()));
+                        } else {
+                          print(responseData["message"]);
+                        }
+                      }
                     }),
                     SizedBox(height: 5),
                     _buildButton("REGISTER", () => _navigateToSignUp(context))

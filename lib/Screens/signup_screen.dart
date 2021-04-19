@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fypMobile/Screens/components/signingTF.dart';
 
@@ -100,6 +102,34 @@ class _SignUpScreen extends State<SignUpScreen> {
                 ),
                 _buildButton("SIGN UP", () async {
                   print("SIGN UP button pressed");
+                  final splitName = _name.split(" ");
+                  if (splitName.length != 2) {
+                    return;
+                  }
+                  final firstName = splitName[0];
+                  final lastName = splitName[1];
+                  Map data = {
+                    "username": _username,
+                    "password": _password,
+                    "email": _email,
+                    "firstName": firstName,
+                    "lastName": lastName,
+                    "mobileNumber": _mobileNumber
+                  };
+                  String body = json.encode(data);
+                  var url = Uri.parse(backendApiUrl + 'user/');
+                  final response = await http.post(url,
+                      headers: {"Content-Type": "application/json"},
+                      body: body);
+                  if (response.statusCode == 200) {
+                    Map responseData = json.decode(response.body);
+                    if (responseData["success"]) {
+                      print("User has been created");
+                      Navigator.pop(context);
+                    } else {
+                      print(responseData["message"]);
+                    }
+                  }
                 })
               ],
             ),
