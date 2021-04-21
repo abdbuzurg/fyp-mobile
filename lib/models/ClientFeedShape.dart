@@ -8,7 +8,7 @@ class ClientFeedShape {
   final String finalLocation;
   final String pricing;
   final String carModel;
-  final String numberOfSeats;
+  final int numberOfSeats;
   final String departureDate;
   final String mobileNumber;
   final String description;
@@ -31,16 +31,11 @@ class ClientFeedShape {
   factory ClientFeedShape.fromAllFeedJson(Map<String, dynamic> result) {
     return ClientFeedShape(
         id: result["id"],
-        username: result["driver"]["username"],
-        driverName: result["driver"]["name"],
-        initialLocation: result["initialLocation"],
-        finalLocation: result["finalLocation"],
+        initialLocation: result["destinationFrom"],
+        finalLocation: result["destinationTo"],
         pricing: result["pricing"],
         carModel: result["carModel"],
         numberOfSeats: result["numberOfSeats"],
-        departureDate: result["departureDate"],
-        description: result["description"],
-        mobileNumber: result["driver"]["mobileNumber"],
-        driverId: result["driver"]["id"]);
+        departureDate: result["departureDate"]);
   }
 }

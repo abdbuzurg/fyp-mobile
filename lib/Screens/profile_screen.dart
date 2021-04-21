@@ -24,7 +24,6 @@ class _ProfileScreen extends State<ProfileScreen> {
   Future<UserShape> getUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
-
     var url = Uri.parse(backendApiUrl + 'user/myself');
     final response = await http.get(url, headers: {
       "Content-Type": "application/json",
@@ -33,7 +32,6 @@ class _ProfileScreen extends State<ProfileScreen> {
     if (response.statusCode == 200) {
       Map responseData = json.decode(response.body);
       if (responseData["success"]) {
-        print(responseData["data"]);
         return UserShape.from(responseData["data"]);
       }
     }

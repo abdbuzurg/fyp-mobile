@@ -120,7 +120,6 @@ class _SignInScreen extends State<SignInScreen> {
                     _buildForgotPasswordFlag(),
                     _buildRememberMeCheckbox(),
                     _buildButton("LOGIN", () async {
-                      print("Logging in");
                       var url = Uri.parse(backendApiUrl + 'user/login');
                       Map data = {'username': _user, 'password': _password};
                       String body = json.encode(data);
@@ -130,10 +129,8 @@ class _SignInScreen extends State<SignInScreen> {
                       if (response.statusCode == 200) {
                         Map responseData = json.decode(response.body);
                         if (responseData["success"]) {
-                          print("You are logged in");
                           SharedPreferences prefs =
                               await SharedPreferences.getInstance();
-                          print(responseData["token"]);
                           await prefs.setString("token", responseData["token"]);
                           Navigator.of(context).pushReplacement(
                               new MaterialPageRoute(

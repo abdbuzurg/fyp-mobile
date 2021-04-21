@@ -14,52 +14,10 @@ class ASingleClientFeed extends StatefulWidget {
 }
 
 class _ASingleClientFeedState extends State<ASingleClientFeed> {
-  // bool requestStatus = false;
-  // Future<bool> ownerOfFeed;
-
-  // Future<bool> initialCheckForOwnerOfPost() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   final int userId = await prefs.get("userId");
-  //   return widget.clientFeed.driverId == userId ? true : false;
-  // }
-
-  // Future<void> initialCheckForRequest() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   final String token = await prefs.get("token");
-  //   final String checkIfRequested =
-  //       RequestGraphql.allRequstOfAClientFeed(widget.clientFeed.id);
-  //   print(checkIfRequested);
-  //   GraphQLClient client = GraphQLConfiguration().clientToQuery(token: token);
-  //   QueryResult result =
-  //       await client.query(QueryOptions(documentNode: gql(checkIfRequested)));
-  //   print(result.data);
-  //   if (result.hasException) {
-  //     print(result.data);
-  //     // if (!result.data["allRequstOfAClientFeed"].length == 0) {
-
-  //     // };
-  //   } else {
-  //     print(result.exception);
-  //   }
-  // }
-
-  // @override
-  // void initState() {
-  //   ownerOfFeed = initialCheckForOwnerOfPost();
-  //   super.initState();
-  // }
-
-  // void requestSeat() {
-  //   setState(() {
-  //     requestStatus = true;
-  //   });
-  // }
-
-  // void cancelSeat() {
-  //   setState(() {
-  //     requestStatus = false;
-  //   });
-  // }
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +47,10 @@ class _ASingleClientFeedState extends State<ASingleClientFeed> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.clientFeed.driverName,
+                          Text("No Driver Name",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20.0)),
-                          Text(widget.clientFeed.username,
+                          Text("No driver Username",
                               style: TextStyle(fontSize: 15.0)),
                         ],
                       )
@@ -132,7 +90,7 @@ class _ASingleClientFeedState extends State<ASingleClientFeed> {
                               Icon(Icons.airline_seat_legroom_normal,
                                   size: 36.0),
                               SizedBox(width: 8.0),
-                              Text(widget.clientFeed.numberOfSeats,
+                              Text(widget.clientFeed.numberOfSeats.toString(),
                                   style: TextStyle(fontSize: 18.0)),
                             ])
                           ]),
@@ -147,7 +105,7 @@ class _ASingleClientFeedState extends State<ASingleClientFeed> {
                       Row(children: [
                         Icon(Icons.call, size: 36.0),
                         SizedBox(width: 8.0),
-                        Text(widget.clientFeed.mobileNumber,
+                        Text("Should be place for mobile number",
                             style: TextStyle(fontSize: 18.0)),
                       ]),
                       SizedBox(height: 10.0),
@@ -155,27 +113,11 @@ class _ASingleClientFeedState extends State<ASingleClientFeed> {
                         children: [
                           Icon(Icons.access_time, size: 36.0),
                           SizedBox(width: 8.0),
-                          Text(widget.clientFeed.departureDate,
+                          Text(widget.clientFeed.departureDate.toString(),
                               style: TextStyle(fontSize: 18.0)),
                         ],
                       ),
                       SizedBox(height: 10.0),
-                      // FutureBuilder(
-                      //     future: ownerOfFeed,
-                      //     builder: (context, snapshot) {
-                      //       if (snapshot.connectionState !=
-                      //           ConnectionState.done) {
-                      //         print(snapshot);
-                      //         if (snapshot.data) {
-                      //           print("You should request the state");
-                      //           return Text("You should request the State");
-                      //         } else {
-                      //           return Text("You are the owner");
-                      //         }
-                      //       }
-
-                      //       return LoadingSpinner();
-                      //     })
                     ],
                   )),
               SizedBox(height: 15.0),

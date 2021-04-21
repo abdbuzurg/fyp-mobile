@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fypMobile/constants.dart';
+import 'package:fypMobile/utils/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './components/loadingSpinner.dart';
 import '../models/ClientFeedShape.dart';
 import 'aSignleClientFeed.dart';
 import 'createClientFeed_screen.dart';
+
+import 'package:http/http.dart' as http;
 
 class ClientFeed extends StatefulWidget {
   _ClientFeed createState() => _ClientFeed();
@@ -18,7 +23,24 @@ class _ClientFeed extends State<ClientFeed> {
   }
 
   Future<List<ClientFeedShape>> _fetchClientFeed() async {
-    return null;
+    String token = await getToken();
+    var url = Uri.parse(backendApiUrl + 'client/');
+    final response = await http.get(url, headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $token'
+    });
+    if (response.statusCode == 200) {
+      Map responseData = json.decode(response.body);
+      if (responseData["success"]) {
+        List<ClientFeedShape> data = new List();
+        responseData["data"].forEach((clientFeed) {
+          data.add(ClientFeedShape.fromAllFeedJson(clientFeed));
+        });
+        return data.reversed.toList();
+      } else {
+        print(responseData["message"]);
+      }
+    }
   }
 
   Future<void> _deleteClientFeed(int id) async {
@@ -45,7 +67,7 @@ class _ClientFeed extends State<ClientFeed> {
             onPressed: () => Navigator.of(context)
                 .push(
                     MaterialPageRoute(builder: (context) => CreateClientFeed()))
-                .then((value) => value != null ? _refresh.value += 1 : null),
+                .then((value) => value ? _refresh.value += 1 : null),
             child: Icon(Icons.add),
             backgroundColor: appPrimaryColor),
         body: ValueListenableBuilder(
@@ -116,9 +138,10 @@ class _ClientFeed extends State<ClientFeed> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(feed.driverName,
+                        Text("A name should be here",
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(feed.username, style: TextStyle(fontSize: 11.0)),
+                        Text("A username should be here",
+                            style: TextStyle(fontSize: 11.0)),
                       ],
                     ),
                   ],
@@ -136,7 +159,7 @@ class _ClientFeed extends State<ClientFeed> {
                           children: [
                             Container(
                                 width: double.infinity,
-                                child: Text(feed.description)),
+                                child: Text("Removed descriptiom")),
                             SizedBox(height: 10.0),
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
