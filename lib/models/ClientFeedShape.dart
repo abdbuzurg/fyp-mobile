@@ -13,6 +13,7 @@ class ClientFeedShape {
   final String mobileNumber;
   final String description;
   final int driverId;
+  final String postedOn;
 
   ClientFeedShape(
       {this.id,
@@ -26,9 +27,23 @@ class ClientFeedShape {
       this.departureDate,
       this.mobileNumber,
       this.description,
-      this.driverId});
+      this.driverId,
+      this.postedOn});
 
   factory ClientFeedShape.fromAllFeedJson(Map<String, dynamic> result) {
+    if (result["destinationFrom"].toString().length <= 11)
+      result["destinationFrom"] +=
+          " " * (11 - result["destinationFrom"].toString().length);
+    else
+      result["destinationTo"] +=
+          result["destinationTo"].toString().substring(0, 8) + "...";
+
+    if (result["destinationTo"].toString().length <= 11)
+      result["destinationTo"] += " " * (11 - result["destinationTo"].length);
+    else
+      result["destinationTo"] +=
+          result["destinationTo"].toString().substring(0, 8) + "...";
+
     return ClientFeedShape(
         id: result["id"],
         initialLocation: result["destinationFrom"],
@@ -36,6 +51,7 @@ class ClientFeedShape {
         pricing: result["pricing"],
         carModel: result["carModel"],
         numberOfSeats: result["numberOfSeats"],
-        departureDate: result["departureDate"]);
+        departureDate: result["departureDate"],
+        postedOn: result["createdAt"]);
   }
 }
