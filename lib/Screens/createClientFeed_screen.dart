@@ -24,6 +24,8 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
   String numberOfSeats;
   DateTime departureDate;
   String description;
+  String initialPrice;
+  String _currency = "Select Currency";
   final globalKey = GlobalKey<ScaffoldState>();
 
   Future<void> createClientFeed() async {
@@ -83,6 +85,36 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
     });
   }
 
+  Future<void> currencySelection(String currency) {
+    switch (currency) {
+      case "RUB":
+        setState(() {
+          pricing = (double.parse(initialPrice) * 0.15).round().toString();
+        });
+        break;
+
+      case "USD":
+        setState(() {
+          pricing = (double.parse(initialPrice) * 11.40).round().toString();
+        });
+        break;
+      case "EUR":
+        setState(() {
+          pricing = (double.parse(initialPrice) * 13.76).round().toString();
+        });
+        break;
+      default:
+        setState(() {
+          pricing = initialPrice;
+        });
+    }
+    setState(() {
+      _currency = currency;
+    });
+    print(pricing);
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,9 +141,90 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
                     SigningTF("Car Model",
                         (value) => setState(() => carModel = value)),
                     SizedBox(height: 10.0),
-                    SigningTF(
-                      "Pricing",
-                      (value) => setState(() => pricing = value),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text("Pricing",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Container(
+                            alignment: Alignment.centerLeft,
+                            height: 60.0,
+                            child: Row(children: [
+                              Flexible(
+                                  child: TextField(
+                                onChanged: (value) {
+                                  setState(() {
+                                    pricing = value;
+                                    initialPrice = value;
+                                  });
+                                },
+                                keyboardType: TextInputType.number,
+                                obscureText: false,
+                                decoration: InputDecoration(
+                                    hintText: "Pricing",
+                                    hintStyle: TextStyle(
+                                        color: Color.fromRGBO(
+                                            192, 192, 192, 1.0))),
+                              )),
+                              RaisedButton(
+                                  elevation: 5.0,
+                                  onPressed: () => showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                            content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              "Select currency:",
+                                              style: TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Row(
+                                              children: [
+                                                TextButton(
+                                                    onPressed: () =>
+                                                        currencySelection(
+                                                            "TJK"),
+                                                    child: Text("TJK")),
+                                                TextButton(
+                                                    onPressed: () =>
+                                                        currencySelection(
+                                                            "RUB"),
+                                                    child: Text("RUB")),
+                                                TextButton(
+                                                    onPressed: () =>
+                                                        currencySelection(
+                                                            "USD"),
+                                                    child: Text("USD")),
+                                                TextButton(
+                                                    onPressed: () =>
+                                                        currencySelection(
+                                                            "EUR"),
+                                                    child: Text("EUR")),
+                                              ],
+                                            ),
+                                          ],
+                                        ));
+                                      }),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 5),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(30.0)),
+                                  color: appPrimaryColor,
+                                  child: Text(_currency,
+                                      style: TextStyle(
+                                          letterSpacing: 1.5,
+                                          fontSize: 16.0,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)))
+                            ]))
+                      ],
                     ),
                     SizedBox(height: 10.0),
                     SigningTF(

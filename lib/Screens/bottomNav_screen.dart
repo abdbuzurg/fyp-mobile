@@ -23,7 +23,7 @@ class _BottomNav extends State<BottomNav> {
       body: IndexedStack(index: _selectedIndex, children: _bottomNavView),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        backgroundColor: Colors.white,
+        backgroundColor: Color.fromRGBO(153, 153, 153, 1),
         showUnselectedLabels: false,
         showSelectedLabels: false,
         onTap: (value) => setState(() => _selectedIndex = value),
@@ -32,6 +32,7 @@ class _BottomNav extends State<BottomNav> {
                 icon: Icon(
                   item.icon,
                   size: 28.0,
+                  color: Colors.white,
                 ),
                 activeIcon: Icon(item.activeIcon, size: 36.0),
                 label: item.title))

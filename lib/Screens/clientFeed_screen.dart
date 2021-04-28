@@ -1,13 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fypMobile/Screens/search_screen.dart';
 import 'package:fypMobile/constants.dart';
+import 'package:fypMobile/models/UserShape.dart';
 import 'package:fypMobile/utils/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './components/loadingSpinner.dart';
 import '../models/ClientFeedShape.dart';
-import 'aSignleClientFeed.dart';
+import 'components/oneFeed.dart';
+import 'modalClientFeed.dart';
 import 'createClientFeed_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -17,9 +21,13 @@ class ClientFeed extends StatefulWidget {
 
 class _ClientFeed extends State<ClientFeed> {
   ValueNotifier<int> _refresh = ValueNotifier<int>(0);
+  Future<List<ClientFeedShape>> clientFeed;
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
+    clientFeed = _fetchClientFeed();
   }
 
   Future<List<ClientFeedShape>> _fetchClientFeed() async {
@@ -39,12 +47,82 @@ class _ClientFeed extends State<ClientFeed> {
         return data.reversed.toList();
       } else {
         print(responseData["message"]);
+        return null;
       }
-    }
+    } else
+      return null;
   }
 
-  Future<void> _deleteClientFeed(int id) async {
-    return null;
+  Future<void> refreshFeed() async {
+    List<ClientFeedShape> freshFeed = await _fetchClientFeed();
+    setState(() {
+      clientFeed = Future.value(freshFeed);
+    });
+  }
+
+  void search(BuildContext context) async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          final TextEditingController _initialLocation =
+              TextEditingController();
+          final TextEditingController _finalLocation = TextEditingController();
+          return AlertDialog(
+            content: Form(
+                key: _formKey,
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text("Search",
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  TextFormField(
+                    validator: (value) =>
+                        value.isNotEmpty ? null : "Invalid Field",
+                    controller: _initialLocation,
+                    decoration: InputDecoration(hintText: "Initial Location"),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  TextFormField(
+                    validator: (value) =>
+                        value.isNotEmpty ? null : "Invalid Field",
+                    controller: _finalLocation,
+                    decoration: InputDecoration(hintText: "Final Location"),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width / 3,
+                    child: RaisedButton(
+                        elevation: 5.0,
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => SearchResult(
+                                    _initialLocation.text,
+                                    _finalLocation.text,
+                                    true)));
+                          }
+                        },
+                        padding: EdgeInsets.all(15.0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30.0)),
+                        color: appPrimaryColor,
+                        child: Text("Search",
+                            style: TextStyle(
+                                letterSpacing: 1.5,
+                                fontSize: 18.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold))),
+                  ),
+                ])),
+          );
+        });
   }
 
   @override
@@ -52,14 +130,12 @@ class _ClientFeed extends State<ClientFeed> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: appPrimaryColor,
-          title: Center(child: Text("Client Feed")),
+          title: Text("SEARCH", style: titleTextStyle),
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.search),
               tooltip: 'Show Snackbar',
-              onPressed: () {
-                _refresh.value += 1;
-              },
+              onPressed: () => search(context),
             ),
           ],
         ),
@@ -70,397 +146,30 @@ class _ClientFeed extends State<ClientFeed> {
                 .then((value) => value ? _refresh.value += 1 : null),
             child: Icon(Icons.add),
             backgroundColor: appPrimaryColor),
-        body: ValueListenableBuilder(
-            valueListenable: _refresh,
-            builder: (context, value, child) => FutureBuilder(
-                  future: _fetchClientFeed(),
-                  builder:
-                      (context, AsyncSnapshot<List<ClientFeedShape>> snapshot) {
-                    if (snapshot.hasData) {
-                      List<ClientFeedShape> allFeed = snapshot.data;
-                      return ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        physics: ScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: allFeed.length,
-                        itemBuilder: (context, index) {
-                          ClientFeedShape feed = allFeed[index];
-                          return oneFeed(feed);
-                        },
-                      );
-                    } else if (snapshot.hasError) {
-                      print(snapshot.error);
-                    }
+        body: FutureBuilder(
+          future: clientFeed,
+          builder: (context, AsyncSnapshot<List<ClientFeedShape>> snapshot) {
+            if (snapshot.hasData) {
+              List<ClientFeedShape> allFeed = snapshot.data;
+              return RefreshIndicator(
+                  onRefresh: refreshFeed,
+                  child: ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    physics: ScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: allFeed.length,
+                    itemBuilder: (context, index) {
+                      ClientFeedShape feed = allFeed[index];
+                      return oneFeed(feed, context);
+                    },
+                  ));
+            } else if (snapshot.hasError) {
+              print(snapshot.error);
+            }
 
-                    return LoadingSpinner();
-                  },
-                )));
-  }
-
-  Future<bool> _removeEnabled(int driverId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final int userId = await prefs.get("userId");
-    return userId == driverId;
-  }
-
-  void detailedInformation(ClientFeedShape feed) {
-    showModalBottomSheet(
-        context: context,
-        builder: (context) {
-          return Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: appPrimaryColor,
-              child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(width: 1.5, color: Colors.white),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                          ),
-                          child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 16.0),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.person_pin_circle, size: 40.0),
-                                      SizedBox(
-                                        width: 15.0,
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Initial Location",
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12.0,
-                                            ),
-                                          ),
-                                          Text(
-                                            feed.initialLocation,
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20.0),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Divider(),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.location_on, size: 40.0),
-                                      SizedBox(
-                                        width: 15.0,
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Final Location",
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12.0,
-                                            ),
-                                          ),
-                                          Text(
-                                            feed.finalLocation,
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20.0),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ))),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(width: 1.5, color: Colors.white),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Post on",
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12.0,
-                                      ),
-                                    ),
-                                    Text(
-                                      feed.postedOn.substring(0, 10),
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 20.0),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Departure Date",
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12.0,
-                                      ),
-                                    ),
-                                    Text(
-                                      feed.departureDate.substring(0, 10),
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 20.0),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(width: 1.5, color: Colors.white),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 16.0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(
-                                          "Seats",
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12.0,
-                                          ),
-                                        ),
-                                        Text(
-                                          feed.numberOfSeats.toString(),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 20.0),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Text(
-                                          "Price",
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12.0,
-                                          ),
-                                        ),
-                                        Text(
-                                          feed.pricing,
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 20.0),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Divider(),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(
-                                          "Car Model",
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12.0,
-                                          ),
-                                        ),
-                                        Text(
-                                          feed.carModel,
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 20.0),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                          )),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Container(
-                        width: double.infinity,
-                        child: RaisedButton(
-                            elevation: 5.0,
-                            onPressed: () => print("call"),
-                            padding: EdgeInsets.all(15.0),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0)),
-                            color: Colors.white,
-                            child: Text("Call",
-                                style: TextStyle(
-                                    letterSpacing: 1.5,
-                                    fontSize: 18.0,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold))),
-                      )
-                    ],
-                  )));
-        });
-  }
-
-  Widget oneFeed(ClientFeedShape feed) {
-    return GestureDetector(
-        onTap: () => detailedInformation(feed),
-        child: Container(
-            margin: EdgeInsets.all(10.0),
-            padding: EdgeInsets.all(10.0),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(width: 1.5, color: appPrimaryColor),
-              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 3,
-                  blurRadius: 7,
-                  offset: Offset(0, 3), // changes position of shadow
-                )
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                    width: double.infinity,
-                    child: Padding(
-                        padding: EdgeInsets.only(left: 5.0, bottom: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(children: <Widget>[
-                              Column(children: <Widget>[
-                                Icon(Icons.person_pin_circle, size: 30.0),
-                                Container(
-                                  height: 40,
-                                  child: CustomPaint(
-                                    foregroundPainter: LinePainter(),
-                                  ),
-                                ),
-                                Icon(Icons.location_on, size: 30.0)
-                              ]),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    "Initial Location",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12.0,
-                                    ),
-                                  ),
-                                  Text(
-                                    feed.initialLocation,
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 20.0),
-                                  ),
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                  Text(
-                                    "Final Location",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12.0,
-                                    ),
-                                  ),
-                                  Text(
-                                    feed.finalLocation,
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 20.0),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(width: 20),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    "Posted on",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12.0,
-                                    ),
-                                  ),
-                                  Text(
-                                    feed.postedOn.substring(0, 10),
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 20.0),
-                                  ),
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                  Text(
-                                    "Departure Date",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12.0,
-                                    ),
-                                  ),
-                                  Text(
-                                    feed.departureDate.substring(0, 10),
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 20.0),
-                                  ),
-                                ],
-                              ),
-                            ]),
-                          ],
-                        ))),
-              ],
-            )));
+            return LoadingSpinner();
+          },
+        ));
   }
 }
 

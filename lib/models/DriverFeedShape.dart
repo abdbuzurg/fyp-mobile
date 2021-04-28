@@ -1,6 +1,6 @@
 import 'package:fypMobile/models/RequestShape.dart';
 
-class ClientFeedShape {
+class DriverFeedShape {
   final int id;
   final String username;
   final String driverName;
@@ -15,7 +15,7 @@ class ClientFeedShape {
   final int driverId;
   final String postedOn;
 
-  ClientFeedShape(
+  DriverFeedShape(
       {this.id,
       this.username,
       this.driverName,
@@ -30,7 +30,7 @@ class ClientFeedShape {
       this.driverId,
       this.postedOn});
 
-  factory ClientFeedShape.fromAllFeedJson(Map<String, dynamic> result) {
+  factory DriverFeedShape.fromAllFeedJson(Map<String, dynamic> result) {
     if (result["destinationFrom"].toString().length <= 11)
       result["destinationFrom"] +=
           " " * (11 - result["destinationFrom"].toString().length);
@@ -44,7 +44,7 @@ class ClientFeedShape {
       result["destinationTo"] +=
           result["destinationTo"].toString().substring(0, 8) + "...";
 
-    return ClientFeedShape(
+    return DriverFeedShape(
         id: result["id"],
         driverId: result["driverId"],
         initialLocation: result["destinationFrom"],
