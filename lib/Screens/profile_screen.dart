@@ -9,6 +9,8 @@ import '../constants.dart';
 
 import 'package:http/http.dart' as http;
 
+import 'editProfile_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   _ProfileScreen createState() => _ProfileScreen();
 }
@@ -19,6 +21,10 @@ class _ProfileScreen extends State<ProfileScreen> {
 
   @override
   void initState() {
+    refresh();
+  }
+
+  Future<void> refresh() async {
     _user = getUserInfo();
     _user.then((value) => setState(() {
           _title = value.username;
@@ -46,6 +52,13 @@ class _ProfileScreen extends State<ProfileScreen> {
         return UserShape.from(responseData["data"]);
       }
     }
+  }
+
+  Future<void> edit() async {
+    UserShape user = await _user;
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => EditProfile(user)))
+        .then((value) => refresh());
   }
 
   Widget content(UserShape user) {
@@ -110,7 +123,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                             width: 150,
                             child: RaisedButton(
                                 elevation: 5.0,
-                                onPressed: () => print("EDIT"),
+                                onPressed: edit,
                                 padding: EdgeInsets.all(8.0),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30.0)),
@@ -319,7 +332,6 @@ class _ProfileScreen extends State<ProfileScreen> {
               final UserShape user = snapshot.data;
               return content(user);
             }
-
             return Center(child: CircularProgressIndicator());
           },
         ));
