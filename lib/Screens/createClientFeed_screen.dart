@@ -17,50 +17,77 @@ class CreateClientFeed extends StatefulWidget {
 }
 
 class _CreateClientFeedState extends State<CreateClientFeed> {
-  String initialLocation;
-  String finalLocation;
-  String pricing;
-  String carModel;
-  String numberOfSeats;
+  TextEditingController numberOfSeats = TextEditingController();
+  TextEditingController initialLocation = TextEditingController();
+  TextEditingController finalLocation = TextEditingController();
+  TextEditingController pricing = TextEditingController()..text = "0";
+  TextEditingController carModel = TextEditingController();
   DateTime departureDate;
-  String description;
   String initialPrice;
-  String _currency = "Select Currency";
+  String _currency = "TJK";
   final globalKey = GlobalKey<ScaffoldState>();
 
   Future<void> createClientFeed() async {
+    //triming the inputs
+    initialLocation.text = initialLocation.text.trim();
+    finalLocation.text = finalLocation.text.trim();
+    pricing.text = pricing.text.trim();
+    carModel.text = carModel.text.trim();
+    numberOfSeats.text = numberOfSeats.text.trim();
     if (initialLocation == null ||
         finalLocation == null ||
         pricing == null ||
         carModel == null ||
         numberOfSeats == null ||
-        departureDate == null) return;
+        departureDate == null) {
+      globalKey.currentState.showSnackBar(
+          customSnackBar("Please fill all the fields", icon: Icons.error));
+      return;
+    }
     String _departureDate = departureDate.millisecondsSinceEpoch.toString();
     String token = await getToken();
     var url = Uri.parse(backendApiUrl + 'client/');
     Map data = {
-      "destinationFrom": initialLocation,
-      "destinationTo": finalLocation,
-      "pricing": pricing,
-      "carModel": carModel,
-      "numberOfSeats": numberOfSeats,
+      "destinationFrom": initialLocation.text,
+      "destinationTo": finalLocation.text,
+      "pricing": double.parse(pricing.text),
+      "carModel": carModel.text,
+      "numberOfSeats": numberOfSeats.text,
       "departureDate": _departureDate
     };
     String body = json.encode(data);
+    //Adding the loading
+    globalKey.currentState.showSnackBar(
+        customSnackBar("Creating...", progress: true, duration: 20));
     final response = await http.post(url,
         headers: {
           "Content-Type": "application/json",
           'Authorization': 'Bearer $token'
         },
         body: body);
+
+    globalKey.currentState.removeCurrentSnackBar();
     if (response.statusCode == 200) {
       Map responseData = json.decode(response.body);
       if (responseData["success"]) {
+        globalKey.currentState
+            .showSnackBar(customSnackBar("Post created", icon: Icons.mood));
+        await Future.delayed(const Duration(seconds: 3));
         Navigator.pop(context, true);
       } else {
-        print("fail");
+        globalKey.currentState.showSnackBar(customSnackBar(
+            responseData["message"],
+            icon: Icons.sentiment_satisfied));
       }
-    } else {}
+    } else {
+      if (response.statusCode == 500) {
+        globalKey.currentState.showSnackBar(
+            customSnackBar("Internal server error", icon: Icons.dns));
+      }
+      globalKey.currentState.showSnackBar(customSnackBar(
+          "No internet connection",
+          icon: Icons.signal_cellular_connected_no_internet_4_bar));
+    }
   }
 
   void _pickDate() async {
@@ -68,7 +95,7 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
     final pickedDate = await showDatePicker(
         context: context,
         initialDate: departureDate == null ? DateTime.now() : departureDate,
-        firstDate: DateTime(DateTime.now().year - 5),
+        firstDate: DateTime(DateTime.now().day),
         lastDate: DateTime(DateTime.now().year + 5));
     if (pickedDate == null) return;
     //picking the time
@@ -85,33 +112,34 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
     });
   }
 
-  Future<void> currencySelection(String currency) {
+  void currencySelection(String currency) {
     switch (currency) {
       case "RUB":
         setState(() {
-          pricing = (double.parse(initialPrice) * 0.15).round().toString();
+          pricing.text = (double.parse(initialPrice) * 0.15).round().toString();
         });
         break;
 
       case "USD":
         setState(() {
-          pricing = (double.parse(initialPrice) * 11.40).round().toString();
+          pricing.text =
+              (double.parse(initialPrice) * 11.40).round().toString();
         });
         break;
       case "EUR":
         setState(() {
-          pricing = (double.parse(initialPrice) * 13.76).round().toString();
+          pricing.text =
+              (double.parse(initialPrice) * 13.76).round().toString();
         });
         break;
       default:
         setState(() {
-          pricing = initialPrice;
+          pricing.text = initialPrice;
         });
     }
     setState(() {
       _currency = currency;
     });
-    print(pricing);
     Navigator.of(context).pop();
   }
 
@@ -132,14 +160,11 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    SigningTF("Initial location",
-                        (value) => setState(() => initialLocation = value)),
+                    SigningTF("Initial location", initialLocation),
                     SizedBox(height: 10.0),
-                    SigningTF("Final location",
-                        (value) => setState(() => finalLocation = value)),
+                    SigningTF("Final location", finalLocation),
                     SizedBox(height: 10.0),
-                    SigningTF("Car Model",
-                        (value) => setState(() => carModel = value)),
+                    SigningTF("Car Model", carModel),
                     SizedBox(height: 10.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,15 +176,15 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
                             height: 60.0,
                             child: Row(children: [
                               Flexible(
-                                  child: TextField(
+                                  child: TextFormField(
+                                controller: pricing,
+                                keyboardType: TextInputType.number,
+                                obscureText: false,
                                 onChanged: (value) {
                                   setState(() {
-                                    pricing = value;
                                     initialPrice = value;
                                   });
                                 },
-                                keyboardType: TextInputType.number,
-                                obscureText: false,
                                 decoration: InputDecoration(
                                     hintText: "Pricing",
                                     hintStyle: TextStyle(
@@ -176,7 +201,7 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
-                                              "Select currency:",
+                                              "Select Currency",
                                               style: TextStyle(
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.bold),
@@ -229,7 +254,7 @@ class _CreateClientFeedState extends State<CreateClientFeed> {
                     SizedBox(height: 10.0),
                     SigningTF(
                       "Number of seats",
-                      (value) => setState(() => numberOfSeats = value),
+                      numberOfSeats,
                       keyboardType: true,
                     ),
                     SizedBox(height: 10.0),

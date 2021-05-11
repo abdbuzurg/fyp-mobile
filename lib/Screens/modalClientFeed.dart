@@ -223,7 +223,7 @@ void detailedInformation(ClientFeedShape feed, BuildContext context) {
                                         ),
                                       ),
                                       Text(
-                                        feed.pricing,
+                                        feed.pricing.toString(),
                                         style: TextStyle(
                                             color: Colors.black,
                                             fontSize: 20.0),

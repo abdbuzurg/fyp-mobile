@@ -6,7 +6,7 @@ class ClientFeedShape {
   final String driverName;
   final String initialLocation;
   final String finalLocation;
-  final String pricing;
+  final int pricing;
   final String carModel;
   final int numberOfSeats;
   final String departureDate;

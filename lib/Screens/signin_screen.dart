@@ -19,8 +19,8 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreen extends State<SignInScreen> {
   bool _rememberMe = false;
-  String _user;
-  String _password;
+  TextEditingController _user = TextEditingController();
+  TextEditingController _password = TextEditingController();
   final globalKey = GlobalKey<ScaffoldState>();
 
   Widget _buildForgotPasswordFlag() {
@@ -99,46 +99,71 @@ class _SignInScreen extends State<SignInScreen> {
                             fontSize: 30.0,
                             fontWeight: FontWeight.bold)),
                     SizedBox(height: 15.0),
-                    SigningTF(
-                      "Username or Email",
-                      (value) {
-                        setState(() {
-                          _user = value;
-                        });
-                      },
-                    ),
+                    SigningTF("Username", _user),
                     SizedBox(height: 15.0),
                     SigningTF(
                       "Password",
-                      (value) {
-                        setState(() {
-                          _password = value;
-                        });
-                      },
+                      _password,
                       obscure: true,
                     ),
                     _buildForgotPasswordFlag(),
                     _buildRememberMeCheckbox(),
                     _buildButton("LOGIN", () async {
+                      //Triming the data
+                      _user.text = _user.text.trim();
+                      _password.text = _password.text.trim();
+                      //validation
+                      if (_user.text.isEmpty || _user.text.isEmpty) {
+                        globalKey.currentState.showSnackBar(customSnackBar(
+                            "Please fill all the fields",
+                            icon: Icons.error));
+                        return;
+                      }
+                      //Forming the data
                       var url = Uri.parse(backendApiUrl + 'user/login');
-                      Map data = {'username': _user, 'password': _password};
+                      Map data = {
+                        'username': _user.text,
+                        'password': _password.text
+                      };
                       String body = json.encode(data);
+                      //adding loading
+                      globalKey.currentState.showSnackBar(customSnackBar(
+                          "Logging in...",
+                          progress: true,
+                          duration: 20));
                       final response = await http.post(url,
                           headers: {"Content-Type": "application/json"},
                           body: body);
+                      //removing loading
+                      globalKey.currentState.removeCurrentSnackBar();
                       if (response.statusCode == 200) {
                         Map responseData = json.decode(response.body);
                         if (responseData["success"]) {
+                          globalKey.currentState.showSnackBar(
+                              customSnackBar("Logged in", icon: Icons.mood));
                           SharedPreferences prefs =
                               await SharedPreferences.getInstance();
                           await prefs.setString("token", responseData["token"]);
+                          await Future.delayed(const Duration(seconds: 1));
                           Navigator.of(context).pushReplacement(
                               new MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       BottomNav()));
                         } else {
-                          print(responseData["message"]);
+                          globalKey.currentState.showSnackBar(customSnackBar(
+                              responseData["message"],
+                              icon: Icons.sentiment_satisfied));
                         }
+                      } else {
+                        if (response.statusCode == 500) {
+                          globalKey.currentState.showSnackBar(customSnackBar(
+                              "Internal server error",
+                              icon: Icons.dns));
+                        }
+                        globalKey.currentState.showSnackBar(customSnackBar(
+                            "No internet connection",
+                            icon: Icons
+                                .signal_cellular_connected_no_internet_4_bar));
                       }
                     }),
                     SizedBox(height: 5),

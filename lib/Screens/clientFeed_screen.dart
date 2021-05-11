@@ -20,7 +20,6 @@ class ClientFeed extends StatefulWidget {
 }
 
 class _ClientFeed extends State<ClientFeed> {
-  ValueNotifier<int> _refresh = ValueNotifier<int>(0);
   Future<List<ClientFeedShape>> clientFeed;
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -81,7 +80,7 @@ class _ClientFeed extends State<ClientFeed> {
                     validator: (value) =>
                         value.isNotEmpty ? null : "Invalid Field",
                     controller: _initialLocation,
-                    decoration: InputDecoration(hintText: "Initial Location"),
+                    decoration: InputDecoration(labelText: "Initial Location"),
                   ),
                   SizedBox(
                     height: 10,
@@ -90,7 +89,7 @@ class _ClientFeed extends State<ClientFeed> {
                     validator: (value) =>
                         value.isNotEmpty ? null : "Invalid Field",
                     controller: _finalLocation,
-                    decoration: InputDecoration(hintText: "Final Location"),
+                    decoration: InputDecoration(labelText: "Final Location"),
                   ),
                   SizedBox(
                     height: 20,
@@ -143,7 +142,7 @@ class _ClientFeed extends State<ClientFeed> {
             onPressed: () => Navigator.of(context)
                 .push(
                     MaterialPageRoute(builder: (context) => CreateClientFeed()))
-                .then((value) => value ? _refresh.value += 1 : null),
+                .then((value) => value ? refreshFeed() : null),
             child: Icon(Icons.add),
             backgroundColor: appPrimaryColor),
         body: FutureBuilder(
