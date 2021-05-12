@@ -9,6 +9,8 @@ import '../constants.dart';
 
 import 'package:http/http.dart' as http;
 
+import 'about_screen.dart';
+import 'driverHistory_screen.dart';
 import 'editProfile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -175,28 +177,32 @@ class _ProfileScreen extends State<ProfileScreen> {
                       children: [
                         Expanded(
                             flex: 1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                      width: 1.5, color: Colors.white),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(5.0)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 3,
-                                      blurRadius: 5,
-                                      offset: Offset(
-                                          0, 3), // changes position of shadow
-                                    ),
+                            child: GestureDetector(
+                                onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        builder: (context) => DriverHistory())),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                          width: 1.5, color: Colors.white),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(5.0)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
+                                          offset: Offset(0,
+                                              3), // changes position of shadow
+                                        ),
+                                      ]),
+                                  padding: EdgeInsets.all(5),
+                                  child: Column(children: [
+                                    Icon(Icons.directions_car),
+                                    Text("As a driver")
                                   ]),
-                              padding: EdgeInsets.all(5),
-                              child: Column(children: [
-                                Icon(Icons.directions_car),
-                                Text("As a driver")
-                              ]),
-                            )),
+                                ))),
                         SizedBox(
                           width: 10,
                         ),
@@ -280,26 +286,32 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ),
                       Expanded(
                           flex: 1,
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                border:
-                                    Border.all(width: 1.5, color: Colors.white),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5.0)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                    offset: Offset(
-                                        0, 3), // changes position of shadow
-                                  ),
+                          child: GestureDetector(
+                              onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (context) => About())),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        width: 1.5, color: Colors.white),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(5.0)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 3,
+                                        blurRadius: 5,
+                                        offset: Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ]),
+                                padding: EdgeInsets.all(5),
+                                child: Column(children: [
+                                  Icon(Icons.info),
+                                  Text("About")
                                 ]),
-                            padding: EdgeInsets.all(5),
-                            child: Column(
-                                children: [Icon(Icons.info), Text("About")]),
-                          ))
+                              )))
                     ],
                   ),
                 ))
